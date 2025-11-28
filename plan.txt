@@ -1,0 +1,13 @@
+owner = omar 
+
+owner permission = employees,inventory,sales sheet, if he wants to add a new employee or remove employess, register shops or delete shops, he can see stock,assign shops to employees, and employee name and contact, only owner will see contact, owner will add products and he should specify which shop it is and how much will they sell(quantity).
+
+
+employees permission = things they sell, employee will manage the shop they are assigned to like their stocks in and they wont be able to remove other employee data without owner permission, and they wont be able to see data of other shops,
+
+in dashboard sheet, i need you to automatically cover everything in backend and calculate and display things in dashboard,inventory,sales history, low stock count by each shop
+
+
+and the first thing the website shows is login page and admin account will be created once the backend script starts, and also admin(owner ) will be able to create account for employees
+
+
