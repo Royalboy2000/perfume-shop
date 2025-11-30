@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { SectionCard } from "@/components/ui/SectionCard";
 import api from "@/lib/api";
 
@@ -18,15 +17,8 @@ function stockStatus(row: Stock) {
   return "ok";
 }
 
-type Product = {
-  id: string;
-  product_id: string;
-  name: string;
-};
-
 export default function EmployeeStockPage() {
   const [stock, setStock] = useState<Stock[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [newStock, setNewStock] = useState({
     product_id: "",
     quantity: 0,
@@ -35,20 +27,16 @@ export default function EmployeeStockPage() {
   useEffect(() => {
     const fetchStock = async () => {
       try {
-        const stockResponse = await api.get("/employee/stock");
-        setStock(stockResponse.data);
-
-        const productsResponse = await api.get("/owner/products");
-        setProducts(productsResponse.data);
+        const response = await api.get("/employee/stock");
+        setStock(response.data);
       } catch (error) {
         console.error("Error fetching stock:", error);
-        toast.error("Failed to fetch stock data.");
       }
     };
     fetchStock();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewStock({ ...newStock, [e.target.name]: e.target.value });
   };
 
@@ -64,10 +52,8 @@ export default function EmployeeStockPage() {
         product_id: "",
         quantity: 0,
       });
-      toast.success("Stock added successfully.");
     } catch (error) {
       console.error("Error adding stock:", error);
-      toast.error("Failed to add stock.");
     }
   };
 
@@ -129,19 +115,13 @@ export default function EmployeeStockPage() {
         <form className="grid gap-3 text-xs sm:grid-cols-2" onSubmit={handleAddStock}>
           <div className="space-y-1 sm:col-span-2">
             <label className="text-[11px] text-slate-300">Product</label>
-            <select
+            <input
               name="product_id"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none focus:border-brand-500"
+              placeholder="Enter Product ID"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newStock.product_id}
               onChange={handleInputChange}
-            >
-              <option>Select product</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.product_id} • {product.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="space-y-1">
             <label className="text-[11px] text-slate-300">Quantity received</label>

@@ -182,10 +182,10 @@ export default function OwnerEmployeesPage() {
             />
           </div>
           <div className="space-y-1 sm:col-span-2">
-            <label className="text-[11px] text-slate-300">Email</label>
+            <label className="text-[11px] text-slate-300">Username</label>
             <input
               name="username"
-              placeholder="Email for login"
+              placeholder="Username for login"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newEmployee.username}
               onChange={handleInputChange}

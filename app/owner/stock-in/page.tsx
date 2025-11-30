@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { SectionCard } from "@/components/ui/SectionCard";
 import api from "@/lib/api";
 
@@ -26,16 +25,9 @@ type Shop = {
   manager: string;
 };
 
-type Product = {
-  id: string;
-  product_id: string;
-  name: string;
-};
-
 export default function OwnerStockInPage() {
   const [stockIns, setStockIns] = useState<StockIn[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [newStockIn, setNewStockIn] = useState({
     stock_in_id: "",
     date: "",
@@ -54,12 +46,8 @@ export default function OwnerStockInPage() {
 
         const shopsResponse = await api.get("/owner/shops");
         setShops(shopsResponse.data);
-
-        const productsResponse = await api.get("/owner/products");
-        setProducts(productsResponse.data);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Failed to fetch data.");
       }
     };
     fetchData();
@@ -86,10 +74,8 @@ export default function OwnerStockInPage() {
         supplier: "",
         notes: "",
       });
-      toast.success("Stock-in record created successfully.");
     } catch (error) {
       console.error("Error creating stock-in record:", error);
-      toast.error("Failed to create stock-in record.");
     }
   };
 
@@ -136,19 +122,13 @@ export default function OwnerStockInPage() {
           </div>
           <div className="space-y-1 sm:col-span-2">
             <label className="text-[11px] text-slate-300">Product</label>
-            <select
+            <input
               name="product_id"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none focus:border-brand-500"
+              placeholder="Enter Product ID"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newStockIn.product_id}
               onChange={handleInputChange}
-            >
-              <option>Select product</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.product_id} • {product.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="space-y-1">
             <label className="text-[11px] text-slate-300">Quantity received</label>

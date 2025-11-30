@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { SectionCard } from "@/components/ui/SectionCard";
 import api from "@/lib/api";
 
@@ -29,16 +28,9 @@ type Product = {
   name: string;
 };
 
-type Shop = {
-  id: string;
-  shop_id: string;
-  name: string;
-};
-
 export default function EmployeeSalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [shop, setShop] = useState<Shop | null>(null);
   const [ticketItems, setTicketItems] = useState<TicketItem[]>([]);
   const [newSale, setNewSale] = useState({
     product_id: "",
@@ -53,22 +45,16 @@ export default function EmployeeSalesPage() {
         const salesResponse = await api.get("/employee/sales");
         setSales(salesResponse.data);
 
-        const productsResponse = await api.get("/owner/products");
+        const productsResponse = await api.get("/api/products");
         setProducts(productsResponse.data);
-
-        const profileResponse = await api.get("/employee/profile");
-        setShop(profileResponse.data.shop);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Failed to fetch data.");
       }
     };
     fetchData();
   }, []);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setNewSale({ ...newSale, [e.target.name]: e.target.value });
   };
 
@@ -94,10 +80,8 @@ export default function EmployeeSalesPage() {
       setSales(response.data);
       // Clear ticket
       setTicketItems([]);
-      toast.success("Sale completed successfully.");
     } catch (error) {
       console.error("Error creating sale:", error);
-      toast.error("Failed to complete sale.");
     }
   };
 
@@ -119,8 +103,7 @@ export default function EmployeeSalesPage() {
           <div className="space-y-1 sm:col-span-2">
             <label className="text-[11px] text-slate-300">Shop</label>
             <div className="flex h-10 items-center rounded-xl border border-slate-800 bg-slate-950/70 px-3 text-[11px] text-slate-300">
-              {shop ? `${shop.shop_id} • ${shop.name}` : "Loading..."} (locked to
-              your account)
+              G13 • AL FAROUQ (locked to your account)
             </div>
           </div>
           <div className="space-y-1 sm:col-span-2">

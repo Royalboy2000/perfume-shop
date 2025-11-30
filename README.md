@@ -1,18 +1,16 @@
 # Perfume Business Management
 
-This is a full-stack application for managing a perfume business. It includes a Flask backend and a Next.js frontend.
+This is a full-stack application for managing a perfume business. It includes a Python/Flask backend and a Next.js frontend.
 
-## Setup
-
-### Backend
+## Backend Setup
 
 1.  Navigate to the `backend` directory:
     ```bash
     cd backend
     ```
-2.  Create a Python virtual environment:
+2.  Create a virtual environment:
     ```bash
-    python -m venv venv
+    python3 -m venv venv
     ```
 3.  Activate the virtual environment:
     ```bash
@@ -22,36 +20,35 @@ This is a full-stack application for managing a perfume business. It includes a 
     ```bash
     pip install -r requirements.txt
     ```
-5.  Initialize the database:
+5.  Create a `.env` file and add a `JWT_SECRET_KEY`:
+    ```bash
+    echo "JWT_SECRET_KEY=my-super-secret-key" > .env
+    ```
+6.  Initialize the database:
     ```bash
     flask db upgrade
     ```
-6.  Create an owner account:
+7.  Create the owner account:
     ```bash
     python create_owner.py
     ```
-7.  Run the backend server:
+8.  Run the backend server:
     ```bash
-    python app.py
+    flask run
     ```
 
-### Frontend
+## Frontend Setup
 
-1.  Navigate to the root directory.
+1.  Navigate to the root of the project.
 2.  Install the dependencies:
     ```bash
     npm install
     ```
-3.  Create a `.env.local` file in the root directory and add the following line:
-    ```
-    NEXT_PUBLIC_API_URL=http://localhost:5000
+3.  Create a `.env.local` file and add the `NEXT_PUBLIC_API_URL`:
+    ```bash
+    echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > .env.local
     ```
 4.  Run the frontend server:
     ```bash
     npm run dev
     ```
-
-## Usage
-
-*   The application will be available at `http://localhost:3000`.
-*   Log in with the owner credentials you created during the setup.
