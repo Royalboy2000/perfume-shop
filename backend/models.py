@@ -1,4 +1,5 @@
 from db import db
+from bcrypt import hashpw, gensalt, checkpw
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,11 +13,9 @@ class User(db.Model):
     shop = db.relationship('Shop', backref=db.backref('employees', lazy=True))
 
     def set_password(self, password):
-        from bcrypt import hashpw, gensalt
         self.password = hashpw(password.encode('utf-8'), gensalt()).decode('utf-8')
 
     def check_password(self, password):
-        from bcrypt import checkpw
         return checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
 
 class Shop(db.Model):
