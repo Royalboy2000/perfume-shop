@@ -3,6 +3,7 @@ from models import User, Shop, Product, Inventory, Sale, StockIn
 from db import db
 from flask_jwt_extended import jwt_required
 from decorators import owner_required
+from email_validator import validate_email, EmailNotValidError
 
 owner_bp = Blueprint('owner', __name__)
 
@@ -20,8 +21,6 @@ def get_employees():
         'contact': user.contact,
         'username': user.username
     } for user in users])
-
-from email_validator import validate_email, EmailNotValidError
 
 @owner_bp.route('/employees', methods=['POST'])
 @jwt_required()

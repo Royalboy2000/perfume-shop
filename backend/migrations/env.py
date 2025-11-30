@@ -65,16 +65,7 @@ def run_migrations_offline():
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            render_as_batch=True,
-            naming_convention={
-                "ix": 'ix_%(column_0_label)s',
-                "uq": "uq_%(table_name)s_%(column_0_name)s",
-                "ck": "ck_%(table_name)s_%(constraint_name)s",
-                "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-                "pk": "pk_%(table_name)s"
-            }
+        url=url, target_metadata=get_metadata(), literal_binds=True
     )
 
     with context.begin_transaction():

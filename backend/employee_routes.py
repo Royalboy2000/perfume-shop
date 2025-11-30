@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from models import Sale, User, Inventory, Product
 from db import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import uuid
 
 employee_bp = Blueprint('employee', __name__)
 
@@ -37,8 +38,6 @@ def get_sales():
             'name': sale.product.name
         }
     } for sale in sales])
-
-import uuid
 
 @employee_bp.route('/sales', methods=['POST'])
 @jwt_required()
@@ -85,29 +84,21 @@ def get_stock():
         'reorder_level': item.product.reorder_level
     } for item in inventory])
 
-@employee_bp.route('/dashboard', methods=['GET'])
-@jwt_required()
-def dashboard():
-    current_user_username = get_jwt_identity()
-    user = User.query.filter_by(username=current_user_username).first()
-
-    total_sales = db.session.query(db.func.sum(Sale.total)).filter_by(employee_id=user.id).scalar()
-    low_stock_count = db.session.query(Inventory).join(Product).filter(Inventory.shop_id == user.shop_id, Inventory.current_stock <= Product.reorder_level).count()
-
-    return jsonify({
-        'total_sales': total_sales,
-        'low_stock_count': low_stock_count
-    })
-
 @employee_bp.route('/stock-in', methods=['POST'])
 @jwt_required()
 def stock_in():
     data = request.get_json()
+    if not data:
+        return jsonify({"msg": "Missing JSON in request"}), 400
+
+    product_id = data.get('product_id')
+    quantity = data.get('quantity')
+
+    if not all([product_id, quantity]):
+        return jsonify({"msg": "Missing required fields"}), 400
+
     current_user_username = get_jwt_identity()
     user = User.query.filter_by(username=current_user_username).first()
-
-    product_id = data['product_id']
-    quantity = data['quantity']
 
     inventory_item = Inventory.query.filter_by(shop_id=user.shop_id, product_id=product_id).first()
 
@@ -123,3 +114,17 @@ def stock_in():
 
     db.session.commit()
     return jsonify({'message': 'Stock added successfully'}), 201
+
+@employee_bp.route('/dashboard', methods=['GET'])
+@jwt_required()
+def dashboard():
+    current_user_username = get_jwt_identity()
+    user = User.query.filter_by(username=current_user_username).first()
+
+    total_sales = db.session.query(db.func.sum(Sale.total)).filter_by(employee_id=user.id).scalar()
+    low_stock_count = db.session.query(Inventory).join(Product).filter(Inventory.shop_id == user.shop_id, Inventory.current_stock <= Product.reorder_level).count()
+
+    return jsonify({
+        'total_sales': total_sales,
+        'low_stock_count': low_stock_count
+    })
