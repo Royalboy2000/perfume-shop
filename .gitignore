@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.eggs/
+instance/
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+.cache/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Backend
+backend/venv
+backend/.env
+
+# Next.js
+.next/
+
+# Logs
+npm_output.log
+flask_output.log
+
+# Environment variables
+.env.local
