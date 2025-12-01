@@ -27,6 +27,7 @@ def main():
 
     run_command(f"{activate_script} && pip install -r backend/requirements.txt", shell=True, use_bash=True)
 
+    # Reset DB properly
     if args.reset_db:
         print("--- Resetting database ---")
         if os.path.exists("backend/instance/app.db"):
@@ -34,19 +35,17 @@ def main():
         if os.path.exists("backend/migrations"):
             run_command("rm -rf backend/migrations", shell=True)
 
-    # Handle DB migrations
+    # Handle DB migrations safely
     if not os.path.exists("backend/migrations"):
-        # This branch handles initial setup and resets
+        # Initial setup (NO auto-migrate here — prevents multiple heads)
         init_commands = f"""
         {activate_script} && \
         export FLASK_APP=backend/app.py && \
         flask db init --directory backend/migrations && \
-        flask db migrate --directory backend/migrations && \
         flask db upgrade --directory backend/migrations
         """
         run_command(init_commands, shell=True, use_bash=True)
     else:
-        # For normal startups, just apply migrations
         upgrade_command = f"""
         {activate_script} && \
         export FLASK_APP=backend/app.py && \
@@ -55,8 +54,8 @@ def main():
         run_command(upgrade_command, shell=True, use_bash=True)
 
     # Create owner account
-    print("\\n--- To create an owner account, run the following command in a separate terminal: ---")
-    print(f"{activate_script} && python backend/create_owner.py\\n")
+    print("\n--- To create an owner account, run the following command in a separate terminal: ---")
+    print(f"{activate_script} && python backend/create_owner.py\n")
 
     # Frontend setup
     print("--- Setting up frontend ---")
