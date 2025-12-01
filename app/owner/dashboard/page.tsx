@@ -43,7 +43,7 @@ export default function OwnerDashboardPage() {
         <KpiCard
           title="Sales This Month"
           value={`KSh ${dashboardData.total_sales}`}
-          subtitle="+8% vs last month"
+          subtitle=""
           trend="up"
         />
         <KpiCard
