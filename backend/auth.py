@@ -7,6 +7,8 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    print("Headers:", request.headers)
+    print("Body:", request.get_data())
     data = request.get_json()
     if not data:
         return jsonify({"msg": "Missing JSON in request"}), 400
