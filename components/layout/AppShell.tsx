@@ -24,6 +24,7 @@ const ownerNav = [
   { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/owner/sales", label: "Sales", icon: ShoppingBag },
   { href: "/owner/inventory", label: "Inventory", icon: Package },
+  { href: "/owner/products", label: "Products", icon: Package },
   { href: "/owner/shops", label: "Shops", icon: Store },
   { href: "/owner/employees", label: "Employees", icon: Users }
 ];

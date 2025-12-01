@@ -56,7 +56,11 @@ export default function OwnerEmployeesPage() {
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/owner/employees", newEmployee);
+      const payload = {
+        ...newEmployee,
+        shop_id: parseInt(newEmployee.shop_id, 10),
+      };
+      await api.post("/owner/employees", payload);
       // Refresh employees list
       const response = await api.get("/owner/employees");
       setEmployees(response.data);

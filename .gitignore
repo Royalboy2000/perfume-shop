@@ -37,3 +37,6 @@ flask_output.log
 # Environment variables
 .env.local
 .env.production
+
+# Logs
+*.log
