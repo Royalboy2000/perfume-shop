@@ -59,7 +59,7 @@ export default function EmployeeSalesPage() {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
 
     if (name === "product_id") {
       const selectedProduct = products.find((p) => p.id === value);
@@ -69,31 +69,17 @@ export default function EmployeeSalesPage() {
         price_per_unit: selectedProduct ? selectedProduct.selling_price : 0,
       });
     } else {
-      if (type === "number") {
-        const parsedValue = parseInt(value, 10);
-        setNewSale({
-          ...newSale,
-          [name]: isNaN(parsedValue) ? 0 : parsedValue,
-        });
-      } else {
-        setNewSale({
-          ...newSale,
-          [name]: value,
-        });
-      }
+      setNewSale({
+        ...newSale,
+        [name]: e.target.type === "number" ? parseInt(value, 10) : value,
+      });
     }
   };
 
   const handleAddToTicket = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSale.product_id) {
-      // TODO: Optionally show an error to the user
-      return;
-    }
-    const newTicketItem: TicketItem = {
-      product_id: newSale.product_id,
-      quantity: newSale.quantity,
-      price_per_unit: newSale.price_per_unit,
+    const newTicketItem = {
+      ...newSale,
       total: newSale.quantity * newSale.price_per_unit,
     };
     setTicketItems([...ticketItems, newTicketItem]);
@@ -113,7 +99,6 @@ export default function EmployeeSalesPage() {
           product_id: item.product_id,
           quantity: item.quantity,
           total: item.total,
-          notes: newSale.notes,
         })),
       });
       // Refresh sales list
