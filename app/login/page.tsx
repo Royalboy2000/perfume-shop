@@ -96,20 +96,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-5 flex items-center gap-2 text-[11px] text-slate-500">
-          <div className="h-px flex-1 bg-slate-800" />
-          <span>Dev shortcuts</span>
-          <div className="h-px flex-1 bg-slate-800" />
-        </div>
-
-        <div className="mt-3 flex justify-between text-[11px] text-slate-400">
-          <Link href="/owner/dashboard" className="hover:text-slate-200">
-            Go to Owner dashboard
-          </Link>
-          <Link href="/employee/dashboard" className="hover:text-slate-200">
-            Go to Employee dashboard
-          </Link>
-        </div>
       </div>
     </div>
   );

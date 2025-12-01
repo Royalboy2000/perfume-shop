@@ -54,7 +54,7 @@ export default function EmployeeSalesPage() {
     fetchData();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setNewSale({ ...newSale, [e.target.name]: e.target.value });
   };
 
