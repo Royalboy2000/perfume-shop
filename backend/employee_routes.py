@@ -55,20 +55,26 @@ def create_sale():
 
     ticket_id = f"#T-{uuid.uuid4().hex[:6].upper()}"
 
-    for item in items:
-        new_sale = Sale(
-            ticket_id=ticket_id,
-            time=data['time'],
-            product_id=item['product_id'],
-            quantity=item['quantity'],
-            total=item['total'],
-            notes=data.get('notes'),
-            employee_id=user.id
-        )
-        db.session.add(new_sale)
-
-    db.session.commit()
-    return jsonify({'message': 'Sale created successfully'}), 201
+    try:
+        with db.session.begin_nested():
+            for item in items:
+                new_sale = Sale(
+                    ticket_id=ticket_id,
+                    time=data['time'],
+                    product_id=item['product_id'],
+                    quantity=item['quantity'],
+                    total=item['total'],
+                    notes=item.get('notes'),
+                    employee_id=user.id
+                )
+                db.session.add(new_sale)
+        db.session.commit()
+        return jsonify({'message': 'Sale created successfully'}), 201
+    except Exception as e:
+        db.session.rollback()
+        # It's good practice to log the exception here
+        # logger.error(f"Error creating sale: {e}")
+        return jsonify({"msg": "An internal error occurred"}), 500
 
 @employee_bp.route('/stock', methods=['GET'])
 @jwt_required()

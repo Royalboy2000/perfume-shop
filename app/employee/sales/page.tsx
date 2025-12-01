@@ -19,6 +19,7 @@ type Sale = {
 type TicketItem = {
   product_id: string;
   quantity: number;
+  price_per_unit: number;
   total: number;
 };
 
@@ -26,6 +27,7 @@ type Product = {
   id: string;
   product_id: string;
   name: string;
+  selling_price: number;
 };
 
 export default function EmployeeSalesPage() {
@@ -34,8 +36,8 @@ export default function EmployeeSalesPage() {
   const [ticketItems, setTicketItems] = useState<TicketItem[]>([]);
   const [newSale, setNewSale] = useState({
     product_id: "",
-    quantity: 0,
-    total: 0,
+    quantity: 1,
+    price_per_unit: 0,
     notes: "",
   });
 
@@ -54,17 +56,51 @@ export default function EmployeeSalesPage() {
     fetchData();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setNewSale({ ...newSale, [e.target.name]: e.target.value });
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+
+    if (name === "product_id") {
+      const selectedProduct = products.find((p) => p.id === value);
+      setNewSale({
+        ...newSale,
+        product_id: value,
+        price_per_unit: selectedProduct ? selectedProduct.selling_price : 0,
+      });
+    } else {
+      if (type === "number") {
+        const parsedValue = parseInt(value, 10);
+        setNewSale({
+          ...newSale,
+          [name]: isNaN(parsedValue) ? 0 : parsedValue,
+        });
+      } else {
+        setNewSale({
+          ...newSale,
+          [name]: value,
+        });
+      }
+    }
   };
 
   const handleAddToTicket = (e: React.FormEvent) => {
     e.preventDefault();
-    setTicketItems([...ticketItems, newSale]);
+    if (!newSale.product_id) {
+      // TODO: Optionally show an error to the user
+      return;
+    }
+    const newTicketItem: TicketItem = {
+      product_id: newSale.product_id,
+      quantity: newSale.quantity,
+      price_per_unit: newSale.price_per_unit,
+      total: newSale.quantity * newSale.price_per_unit,
+    };
+    setTicketItems([...ticketItems, newTicketItem]);
     setNewSale({
       product_id: "",
-      quantity: 0,
-      total: 0,
+      quantity: 1,
+      price_per_unit: 0,
       notes: "",
     });
   };
@@ -73,7 +109,12 @@ export default function EmployeeSalesPage() {
     try {
       await api.post("/employee/sales", {
         time: new Date().toISOString(),
-        items: ticketItems,
+        items: ticketItems.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          total: item.total,
+          notes: newSale.notes,
+        })),
       });
       // Refresh sales list
       const response = await api.get("/employee/sales");
@@ -136,12 +177,13 @@ export default function EmployeeSalesPage() {
           <div className="space-y-1">
             <label className="text-[11px] text-slate-300">Price per unit</label>
             <input
-              name="total"
+              name="price_per_unit"
               type="number"
               placeholder="55"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
-              value={newSale.total}
+              value={newSale.price_per_unit}
               onChange={handleInputChange}
+              disabled
             />
           </div>
           <div className="space-y-1 sm:col-span-2">
@@ -188,7 +230,7 @@ export default function EmployeeSalesPage() {
                       {product?.name}
                     </div>
                     <div className="text-[11px] text-slate-400">
-                      KSh {item.total.toFixed(2)}
+                      KSh {item.total?.toFixed(2)}
                     </div>
                   </div>
                   <div className="mt-1 text-[11px] text-slate-300">
