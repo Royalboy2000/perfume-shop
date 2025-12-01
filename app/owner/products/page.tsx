@@ -20,9 +20,9 @@ export default function OwnerProductsPage() {
     product_id: "",
     name: "",
     category: "",
-    cost_price: 0,
-    selling_price: 0,
-    reorder_level: 0,
+    cost_price: "",
+    selling_price: "",
+    reorder_level: "",
   });
 
   useEffect(() => {
@@ -45,18 +45,22 @@ export default function OwnerProductsPage() {
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/owner/products", newProduct);
-      // Refresh products list
+      const payload = {
+        ...newProduct,
+        cost_price: parseFloat(newProduct.cost_price),
+        selling_price: parseFloat(newProduct.selling_price),
+        reorder_level: parseInt(newProduct.reorder_level, 10),
+      };
+      await api.post("/owner/products", payload);
       const response = await api.get("/owner/products");
       setProducts(response.data);
-      // Clear form
       setNewProduct({
         product_id: "",
         name: "",
         category: "",
-        cost_price: 0,
-        selling_price: 0,
-        reorder_level: 0,
+        cost_price: "",
+        selling_price: "",
+        reorder_level: "",
       });
       toast.success("Product created successfully!");
     } catch (error) {
@@ -72,11 +76,15 @@ export default function OwnerProductsPage() {
     if (!selectedProduct) return;
 
     try {
-      await api.put(`/owner/products/${selectedProduct.id}`, selectedProduct);
-      // Refresh products list
+      const payload = {
+        ...selectedProduct,
+        cost_price: parseFloat(selectedProduct.cost_price),
+        selling_price: parseFloat(selectedProduct.selling_price),
+        reorder_level: parseInt(selectedProduct.reorder_level, 10),
+      };
+      await api.put(`/owner/products/${selectedProduct.id}`, payload);
       const response = await api.get("/owner/products");
       setProducts(response.data);
-      // Close modal
       setSelectedProduct(null);
       toast.success("Product updated successfully!");
     } catch (error) {
@@ -88,7 +96,6 @@ export default function OwnerProductsPage() {
   const handleDeleteProduct = async (id: string) => {
     try {
       await api.delete(`/owner/products/${id}`);
-      // Refresh products list
       const response = await api.get("/owner/products");
       setProducts(response.data);
       toast.success("Product deleted successfully!");
@@ -103,21 +110,20 @@ export default function OwnerProductsPage() {
       <div>
         <h1 className="text-xl font-semibold text-slate-50">Products</h1>
         <p className="mt-1 text-xs text-slate-400">
-          Manage your perfume catalog, pricing and reorder levels. This mirrors
-          the Products sheet.
+          Manage your products here.
         </p>
       </div>
 
       <SectionCard
-        title="Add / edit product"
-        description="Define product details and the reorder level that triggers low-stock alerts."
+        title="Add new product"
+        description="Add a new product to your inventory."
       >
         <form className="grid gap-3 text-xs sm:grid-cols-3" onSubmit={handleCreateProduct}>
           <div className="space-y-1">
             <label className="text-[11px] text-slate-300">Product ID</label>
             <input
               name="product_id"
-              placeholder="P006"
+              placeholder="P001"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newProduct.product_id}
               onChange={handleInputChange}
@@ -127,7 +133,7 @@ export default function OwnerProductsPage() {
             <label className="text-[11px] text-slate-300">Product name</label>
             <input
               name="name"
-              placeholder="Perfume name"
+              placeholder="Product name"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newProduct.name}
               onChange={handleInputChange}
@@ -137,7 +143,7 @@ export default function OwnerProductsPage() {
             <label className="text-[11px] text-slate-300">Category</label>
             <input
               name="category"
-              placeholder="e.g. Perfume"
+              placeholder="e.g. Electronics"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newProduct.category}
               onChange={handleInputChange}
@@ -148,7 +154,7 @@ export default function OwnerProductsPage() {
             <input
               name="cost_price"
               type="number"
-              placeholder="25"
+              placeholder="Cost price"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newProduct.cost_price}
               onChange={handleInputChange}
@@ -159,7 +165,7 @@ export default function OwnerProductsPage() {
             <input
               name="selling_price"
               type="number"
-              placeholder="55"
+              placeholder="Selling price"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newProduct.selling_price}
               onChange={handleInputChange}
@@ -170,7 +176,7 @@ export default function OwnerProductsPage() {
             <input
               name="reorder_level"
               type="number"
-              placeholder="5"
+              placeholder="Reorder level"
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
               value={newProduct.reorder_level}
               onChange={handleInputChange}
@@ -188,8 +194,8 @@ export default function OwnerProductsPage() {
       </SectionCard>
 
       <SectionCard
-        title="Product catalog"
-        description="Overview of all your products."
+        title="Products list"
+        description="Overview of all products."
       >
         <div className="grid gap-2 sm:grid-cols-2">
           {products.map((product) => (
@@ -206,11 +212,10 @@ export default function OwnerProductsPage() {
                     {product.name}
                   </div>
                   <div className="mt-1 text-[11px] text-slate-400">
-                    Category: {product.category}
+                    {product.category}
                   </div>
                   <div className="mt-1 text-[11px] text-slate-400">
-                    Cost: KSh {product.cost_price.toFixed(2)} • Selling: KSh
-                    {product.selling_price.toFixed(2)}
+                    Cost: {product.cost_price.toFixed(2)} • Selling: {product.selling_price.toFixed(2)}
                   </div>
                   <div className="mt-1 text-[11px] text-slate-400">
                     Reorder level: {product.reorder_level}
@@ -293,7 +298,7 @@ export default function OwnerProductsPage() {
                   onChange={(e) =>
                     setSelectedProduct({
                       ...selectedProduct,
-                      cost_price: Number(e.target.value),
+                      cost_price: e.target.value,
                     })
                   }
                 />
@@ -308,7 +313,7 @@ export default function OwnerProductsPage() {
                   onChange={(e) =>
                     setSelectedProduct({
                       ...selectedProduct,
-                      selling_price: Number(e.target.value),
+                      selling_price: e.target.value,
                     })
                   }
                 />
@@ -323,7 +328,7 @@ export default function OwnerProductsPage() {
                   onChange={(e) =>
                     setSelectedProduct({
                       ...selectedProduct,
-                      reorder_level: Number(e.target.value),
+                      reorder_level: e.target.value,
                     })
                   }
                 />
