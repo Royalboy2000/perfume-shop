@@ -38,7 +38,8 @@ def create_employee():
     username = data.get('username')
     password = data.get('password')
 
-    if not all([employee_id, name, shop_id, role, username, password]):
+    required_fields = ['employee_id', 'name', 'role', 'username', 'password']
+    if not all(data.get(field) for field in required_fields):
         return jsonify({"msg": "Missing required fields"}), 400
 
     try:
