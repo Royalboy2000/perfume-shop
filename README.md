@@ -2,7 +2,54 @@
 
 This is a full-stack application for managing a perfume business. It includes a Python/Flask backend and a Next.js frontend.
 
-## Backend Setup
+## Quick Start with `start.py`
+
+A Python script is included to automate the entire setup and startup process for both the backend and frontend.
+
+**Prerequisites:**
+- Python 3.x
+- Node.js and npm
+
+### Usage
+
+1.  **Navigate to the project root.**
+
+2.  **Run the script:**
+    ```bash
+    python3 start.py
+    ```
+
+    The script will:
+    - Create and activate a Python virtual environment in the `backend` directory.
+    - Install all necessary backend and frontend dependencies.
+    - Initialize and migrate the database.
+    - Start both the backend (Flask) and frontend (Next.js) servers in development mode.
+
+3.  **Create an owner account:**
+    After the servers start, the script will prompt you to create an owner account in a separate terminal. Open a new terminal and run the command provided in the output.
+
+### Options
+
+-   **Production Mode:**
+    To run the application in production mode, use the `--env production` flag:
+    ```bash
+    python3 start.py --env production
+    ```
+    This will create a production build of the frontend and start the backend with Gunicorn.
+
+-   **Reset the Database:**
+    To delete and recreate the database from scratch, use the `--reset-db` flag. **Warning: This will delete all existing data.**
+    ```bash
+    python3 start.py --reset-db
+    ```
+
+---
+
+## Manual Setup
+
+If you prefer to set up the backend and frontend manually, follow the steps below.
+
+### Backend Setup
 
 ### Development
 
