@@ -25,26 +25,34 @@ def main():
 
     activate_script = "source backend/venv/bin/activate"
 
-    # Backend setup
-    if not os.path.exists("backend/migrations"):
-        run_command(f"{activate_script} && export FLASK_APP=backend/app.py && flask db init --directory backend/migrations", shell=True, use_bash=True)
+    run_command(f"{activate_script} && pip install -r backend/requirements.txt", shell=True, use_bash=True)
 
-    backend_setup_commands = f"""
-    {activate_script} && \\
-    pip install -r backend/requirements.txt && \\
-    export FLASK_APP=backend/app.py && \\
-    flask db migrate --directory backend/migrations && \\
-    flask db upgrade --directory backend/migrations
-    """
     if args.reset_db:
         print("--- Resetting database ---")
         if os.path.exists("backend/instance/app.db"):
             os.remove("backend/instance/app.db")
         if os.path.exists("backend/migrations"):
             run_command("rm -rf backend/migrations", shell=True)
-        run_command(f"{activate_script} && export FLASK_APP=backend/app.py && flask db init --directory backend/migrations", shell=True, use_bash=True)
 
-    run_command(backend_setup_commands, shell=True, use_bash=True)
+    # Handle DB migrations
+    if not os.path.exists("backend/migrations"):
+        # This branch handles initial setup and resets
+        init_commands = f"""
+        {activate_script} && \
+        export FLASK_APP=backend/app.py && \
+        flask db init --directory backend/migrations && \
+        flask db migrate --directory backend/migrations && \
+        flask db upgrade --directory backend/migrations
+        """
+        run_command(init_commands, shell=True, use_bash=True)
+    else:
+        # For normal startups, just apply migrations
+        upgrade_command = f"""
+        {activate_script} && \
+        export FLASK_APP=backend/app.py && \
+        flask db upgrade --directory backend/migrations
+        """
+        run_command(upgrade_command, shell=True, use_bash=True)
 
     # Create owner account
     print("\\n--- To create an owner account, run the following command in a separate terminal: ---")
@@ -55,7 +63,7 @@ def main():
     if not os.path.exists(".env.local") and not os.path.exists(".env.production"):
         print("Please create a .env.local or .env.production file.")
         exit(1)
-    run_command(["npm", "install"])
+    run_command(["npm", "install", "--legacy-peer-deps"])
 
     # Start servers
     print("--- Starting servers ---")
