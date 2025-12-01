@@ -17,7 +17,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'super-secret')
 
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS(app, resources={r"/*": {"origins": CORS_ALLOWED_ORIGINS}})
 jwt = JWTManager(app)
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -30,4 +31,4 @@ app.register_blueprint(api_bp, url_prefix='/api')
 import models
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
