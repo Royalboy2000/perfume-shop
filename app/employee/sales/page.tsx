@@ -192,8 +192,13 @@ export default function EmployeeSalesPage() {
             </button>
             <button
               type="button"
-              className="flex-1 rounded-xl border border-slate-700 px-4 py-2 text-[11px] font-semibold text-slate-200 hover:bg-slate-900"
+              className={`flex-1 rounded-xl border border-slate-700 px-4 py-2 text-[11px] font-semibold text-slate-200 transition-colors ${
+                ticketItems.length === 0
+                  ? "cursor-not-allowed bg-slate-800 text-slate-500"
+                  : "hover:bg-slate-900"
+              }`}
               onClick={handleCompleteSale}
+              disabled={ticketItems.length === 0}
             >
               Complete sale
             </button>
