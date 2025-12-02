@@ -71,7 +71,8 @@ export default function EmployeeSalesPage() {
     } else {
       setNewSale({
         ...newSale,
-        [name]: e.target.type === "number" ? parseInt(value, 10) : value,
+        [name]:
+          e.target.type === "number" ? (parseInt(value, 10) || 0) : value,
       });
     }
   };
