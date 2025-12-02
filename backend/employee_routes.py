@@ -58,12 +58,18 @@ def create_sale():
     try:
         with db.session.begin_nested():
             for item in items:
+                product = Product.query.get(item['product_id'])
+                if not product:
+                    return jsonify({"msg": f"Product with id {item['product_id']} not found"}), 404
+
+                total = product.selling_price * item['quantity']
+
                 new_sale = Sale(
                     ticket_id=ticket_id,
                     time=data['time'],
                     product_id=item['product_id'],
                     quantity=item['quantity'],
-                    total=item['total'],
+                    total=total,
                     notes=item.get('notes'),
                     employee_id=user.id
                 )

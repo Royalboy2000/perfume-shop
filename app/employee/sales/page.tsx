@@ -21,6 +21,7 @@ type TicketItem = {
   quantity: number;
   price_per_unit: number;
   total: number;
+  notes: string;
 };
 
 type Product = {
@@ -62,7 +63,7 @@ export default function EmployeeSalesPage() {
     const { name, value } = e.target;
 
     if (name === "product_id") {
-      const selectedProduct = products.find((p) => p.id === value);
+      const selectedProduct = products.find((p) => p.id === Number(value));
       setNewSale({
         ...newSale,
         product_id: value,
@@ -99,7 +100,7 @@ export default function EmployeeSalesPage() {
         items: ticketItems.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
-          total: item.total,
+          notes: item.notes,
         })),
       });
       // Refresh sales list
