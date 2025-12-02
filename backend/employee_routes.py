@@ -3,6 +3,7 @@ from models import Sale, User, Inventory, Product
 from db import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import uuid
+from datetime import datetime
 
 employee_bp = Blueprint('employee', __name__)
 
@@ -58,12 +59,22 @@ def create_sale():
     try:
         with db.session.begin_nested():
             for item in items:
+                product = Product.query.get(item['product_id'])
+                if not product:
+                    return jsonify({"msg": f"Product with id {item['product_id']} not found"}), 404
+
+                total = product.selling_price * item['quantity']
+
+                # Convert ISO 8601 string to datetime object
+                sale_time_str = data['time'].replace('Z', '+00:00')
+                sale_time = datetime.fromisoformat(sale_time_str)
+
                 new_sale = Sale(
                     ticket_id=ticket_id,
-                    time=data['time'],
+                    time=sale_time,
                     product_id=item['product_id'],
                     quantity=item['quantity'],
-                    total=item['total'],
+                    total=total,
                     notes=item.get('notes'),
                     employee_id=user.id
                 )
