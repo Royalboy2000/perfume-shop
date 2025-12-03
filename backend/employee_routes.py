@@ -65,10 +65,6 @@ def create_sale():
 
                 total = product.selling_price * item['quantity']
 
-                # Convert ISO 8601 string to datetime object
-                sale_time_str = data['time'].replace('Z', '+00:00')
-                sale_time = datetime.fromisoformat(sale_time_str)
-
                 new_sale = Sale(
                     ticket_id=ticket_id,
                     time=sale_time,
