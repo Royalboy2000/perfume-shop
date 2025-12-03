@@ -11,7 +11,8 @@ import {
   History,
   Store,
   Users,
-  Boxes
+  Boxes,
+  User as UserIcon
 } from "lucide-react";
 
 type Role = "owner" | "employee";
@@ -27,7 +28,8 @@ const ownerNav = [
   { href: "/owner/inventory", label: "Inventory", icon: Package },
   { href: "/owner/products", label: "Products", icon: Package },
   { href: "/owner/shops", label: "Shops", icon: Store },
-  { href: "/owner/employees", label: "Employees", icon: Users }
+  { href: "/owner/employees", label: "Employees", icon: Users },
+  { href: "/owner/profile", label: "Profile", icon: UserIcon }
 ];
 
 const employeeNav = [
