@@ -3,6 +3,7 @@ from models import Sale, User, Inventory, Product
 from db import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import uuid
+from datetime import datetime
 
 employee_bp = Blueprint('employee', __name__)
 
@@ -66,7 +67,7 @@ def create_sale():
 
                 new_sale = Sale(
                     ticket_id=ticket_id,
-                    time=data['time'],
+                    time=sale_time,
                     product_id=item['product_id'],
                     quantity=item['quantity'],
                     total=total,
