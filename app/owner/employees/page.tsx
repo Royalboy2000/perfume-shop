@@ -4,13 +4,31 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 
+// Type representing an employee returned from the API.  It includes
+// optional properties for fields that may be omitted, such as the
+// username which was not originally modelled in the frontend.
 type Employee = {
+  /**
+   * Unique database identifier. Used when constructing update or delete
+   * requests.
+   */
   id: string;
+  /** Human‑readable employee ID (e.g. E006). Editable by the owner. */
   employee_id: string;
+  /** Full name of the employee. */
   name: string;
+  /** Associated shop ID. Stored as a string because select inputs return strings. */
   shop_id: string;
+  /** Role of the employee (e.g. Cashier, Sales). */
   role: string;
+  /** Contact information for the employee (phone number or email). */
   contact: string;
+  /**
+   * Login username/email for the employee. When present it will be displayed
+   * and editable. It is optional because earlier versions of the code
+   * omitted it from the type definition.
+   */
+  username?: string;
 };
 
 type Shop = {
@@ -49,7 +67,9 @@ export default function OwnerEmployeesPage() {
     fetchData();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setNewEmployee({ ...newEmployee, [e.target.name]: e.target.value });
   };
 
@@ -81,19 +101,51 @@ export default function OwnerEmployeesPage() {
     }
   };
 
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+  /**
+   * Password field used when editing an employee. We store it separately so
+   * that leaving the password blank does not unintentionally overwrite the
+   * existing password with an empty string. Only when this value contains
+   * a non‑empty string will it be sent to the API on update.
+   */
+  const [editPassword, setEditPassword] = useState<string>("");
 
   const handleUpdateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEmployee) return;
 
     try {
-      await api.put(`/owner/employees/${selectedEmployee.id}`, selectedEmployee);
+      // Build payload from selectedEmployee and conditionally include
+      // password if one has been provided. Also ensure shop_id is sent
+      // as a number. We clone the object to avoid mutating state.
+      const payload: any = {
+        ...selectedEmployee,
+        // Convert shop_id string to a number if possible. Back‑end
+        // expects a numeric value when updating the shop assignment.
+        shop_id: selectedEmployee.shop_id
+          ? parseInt(selectedEmployee.shop_id as unknown as string, 10)
+          : undefined,
+      };
+      // Include a new password only if the field is non‑empty. Leaving
+      // this blank allows the existing password to remain unchanged.
+      if (editPassword.trim() !== "") {
+        payload.password = editPassword;
+      }
+      // Only include username if present. This allows the owner to
+      // update an employee’s login email; if omitted, the back‑end
+      // will keep the existing username unchanged.
+      if (selectedEmployee.username) {
+        payload.username = selectedEmployee.username;
+      }
+      await api.put(`/owner/employees/${selectedEmployee.id}`, payload);
       // Refresh employees list
       const response = await api.get("/owner/employees");
       setEmployees(response.data);
-      // Close modal
+      // Close modal and reset password field
       setSelectedEmployee(null);
+      setEditPassword("");
       toast.success("Employee updated successfully!");
     } catch (error) {
       console.error("Error updating employee:", error);
@@ -119,8 +171,8 @@ export default function OwnerEmployeesPage() {
       <div>
         <h1 className="text-xl font-semibold text-slate-50">Employees</h1>
         <p className="mt-1 text-xs text-slate-400">
-          Manage employee accounts and shop assignments. Only the owner can see
-          contact information for each employee.
+          Manage employee accounts and shop assignments. Only the owner can
+          see contact information for each employee.
         </p>
       </div>
 
@@ -128,7 +180,10 @@ export default function OwnerEmployeesPage() {
         title="Create employee account"
         description="Create a new employee, assign their shop and role, and set an initial login."
       >
-        <form className="grid gap-3 text-xs sm:grid-cols-3" onSubmit={handleCreateEmployee}>
+        <form
+          className="grid gap-3 text-xs sm:grid-cols-3"
+          onSubmit={handleCreateEmployee}
+        >
           <div className="space-y-1">
             <label className="text-[11px] text-slate-300">Employee ID</label>
             <input
@@ -233,7 +288,7 @@ export default function OwnerEmployeesPage() {
                   <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
                     {emp.employee_id}
                   </div>
-                  <div className="text-sm font-semibold text-slate-50">
+                    <div className="text-sm font-semibold text-slate-50">
                     {emp.name}
                   </div>
                   <div className="mt-1 text-[11px] text-slate-400">
@@ -242,6 +297,11 @@ export default function OwnerEmployeesPage() {
                   <div className="mt-1 text-[11px] text-slate-400">
                     Contact: {emp.contact}
                   </div>
+                  {emp.username && (
+                    <div className="mt-1 text-[11px] text-slate-400">
+                      Login: {emp.username}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
@@ -267,7 +327,10 @@ export default function OwnerEmployeesPage() {
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-lg rounded-3xl border border-slate-800/80 bg-slate-950/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.95)] backdrop-blur">
             <h2 className="text-xl font-semibold text-slate-50">Edit Employee</h2>
-            <form className="mt-4 grid gap-3 text-xs sm:grid-cols-3" onSubmit={handleUpdateEmployee}>
+            <form
+              className="mt-4 grid gap-3 text-xs sm:grid-cols-3"
+              onSubmit={handleUpdateEmployee}
+            >
               <div className="space-y-1">
                 <label className="text-[11px] text-slate-300">Employee ID</label>
                 <input
@@ -278,7 +341,7 @@ export default function OwnerEmployeesPage() {
                     setSelectedEmployee({
                       ...selectedEmployee,
                       employee_id: e.target.value,
-                    })
+                    } as Employee)
                   }
                 />
               </div>
@@ -292,7 +355,7 @@ export default function OwnerEmployeesPage() {
                     setSelectedEmployee({
                       ...selectedEmployee,
                       name: e.target.value,
-                    })
+                    } as Employee)
                   }
                 />
               </div>
@@ -306,7 +369,7 @@ export default function OwnerEmployeesPage() {
                     setSelectedEmployee({
                       ...selectedEmployee,
                       shop_id: e.target.value,
-                    })
+                    } as Employee)
                   }
                 >
                   <option>Select shop</option>
@@ -327,7 +390,7 @@ export default function OwnerEmployeesPage() {
                     setSelectedEmployee({
                       ...selectedEmployee,
                       role: e.target.value,
-                    })
+                    } as Employee)
                   }
                 />
               </div>
@@ -341,15 +404,44 @@ export default function OwnerEmployeesPage() {
                     setSelectedEmployee({
                       ...selectedEmployee,
                       contact: e.target.value,
-                    })
+                    } as Employee)
                   }
+                />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <label className="text-[11px] text-slate-300">Email / Username</label>
+                <input
+                  name="username"
+                  type="email"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
+                  value={selectedEmployee.username || ""}
+                  onChange={(e) =>
+                    setSelectedEmployee({
+                      ...selectedEmployee,
+                      username: e.target.value,
+                    } as Employee)
+                  }
+                />
+              </div>
+              <div className="space-y-1 sm:col-span-1">
+                <label className="text-[11px] text-slate-300">New password</label>
+                <input
+                  name="editPassword"
+                  type="password"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-brand-500"
+                  placeholder="Leave blank to keep current"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
                 />
               </div>
               <div className="sm:col-span-3 flex justify-end gap-2">
                 <button
                   type="button"
                   className="rounded-xl border border-slate-700 px-4 py-2 text-[11px] font-semibold text-slate-200 hover:bg-slate-900"
-                  onClick={() => setSelectedEmployee(null)}
+                  onClick={() => {
+                    setSelectedEmployee(null);
+                    setEditPassword("");
+                  }}
                 >
                   Cancel
                 </button>
