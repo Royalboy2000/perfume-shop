@@ -56,20 +56,42 @@ def create_sale():
 
     ticket_id = f"#T-{uuid.uuid4().hex[:6].upper()}"
 
+    # Determine the sale timestamp. If the client sent a `time` value in the
+    # request JSON, try to parse it as an ISO 8601 string. If parsing fails
+    # (e.g. invalid format) or if no time is provided, fallback to the current
+    # UTC time. This prevents a NameError when constructing the Sale model and
+    # ensures the `time` column (which is not nullable) always gets a value.
+    sale_time_str = data.get("time")
+    if sale_time_str:
+        try:
+            sale_time = datetime.fromisoformat(sale_time_str)
+        except (ValueError, TypeError):
+            sale_time = datetime.utcnow()
+    else:
+        sale_time = datetime.utcnow()
+
     try:
         with db.session.begin_nested():
+            # Loop through each item in the sale and create a Sale record.
             for item in items:
-                product = Product.query.get(item['product_id'])
+                # Cast the product_id to an integer to match the primary key on the
+                # Product model. If the value cannot be converted, return a 400.
+                try:
+                    product_id = int(item["product_id"])
+                except (TypeError, ValueError):
+                    return jsonify({"msg": f"Invalid product_id {item['product_id']}"}), 400
+
+                product = Product.query.get(product_id)
                 if not product:
                     return jsonify({"msg": f"Product with id {item['product_id']} not found"}), 404
 
-                total = product.selling_price * item['quantity']
+                total = product.selling_price * item["quantity"]
 
                 new_sale = Sale(
                     ticket_id=ticket_id,
                     time=sale_time,
-                    product_id=item['product_id'],
-                    quantity=item['quantity'],
+                    product_id=product_id,
+                    quantity=item["quantity"],
                     total=total,
                     notes=item.get('notes'),
                     employee_id=user.id
