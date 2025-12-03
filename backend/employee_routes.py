@@ -56,11 +56,6 @@ def create_sale():
 
     ticket_id = f"#T-{uuid.uuid4().hex[:6].upper()}"
 
-    # Determine the sale timestamp. If the client sent a `time` value in the
-    # request JSON, try to parse it as an ISO 8601 string. If parsing fails
-    # (e.g. invalid format) or if no time is provided, fallback to the current
-    # UTC time. This prevents a NameError when constructing the Sale model and
-    # ensures the `time` column (which is not nullable) always gets a value.
     sale_time_str = data.get("time")
     if sale_time_str:
         try:
@@ -72,26 +67,37 @@ def create_sale():
 
     try:
         with db.session.begin_nested():
-            # Loop through each item in the sale and create a Sale record.
             for item in items:
-                # Cast the product_id to an integer to match the primary key on the
-                # Product model. If the value cannot be converted, return a 400.
+                # Cast product_id to integer
                 try:
-                    product_id = int(item["product_id"])
+                    product_id = int(item.get("product_id"))
                 except (TypeError, ValueError):
-                    return jsonify({"msg": f"Invalid product_id {item['product_id']}"}), 400
+                    return jsonify({"msg": f"Invalid product_id {item.get('product_id')}"}), 400
 
                 product = Product.query.get(product_id)
                 if not product:
-                    return jsonify({"msg": f"Product with id {item['product_id']} not found"}), 404
+                    return jsonify({"msg": f"Product with id {item.get('product_id')} not found"}), 404
 
-                total = product.selling_price * item["quantity"]
+                # Cast and validate quantity
+                try:
+                    quantity = int(item.get("quantity"))
+                except (TypeError, ValueError):
+                    return jsonify({"msg": f"Invalid quantity {item.get('quantity')} for product {product_id}"}), 400
+
+                if quantity <= 0:
+                    return jsonify({"msg": f"Quantity must be a positive integer for product {product_id}"}), 400
+
+                # Ensure selling_price is non-negative
+                if product.selling_price < 0:
+                    return jsonify({"msg": f"Product {product_id} has a negative selling price"}), 400
+
+                total = product.selling_price * quantity
 
                 new_sale = Sale(
                     ticket_id=ticket_id,
                     time=sale_time,
                     product_id=product_id,
-                    quantity=item["quantity"],
+                    quantity=quantity,
                     total=total,
                     notes=item.get('notes'),
                     employee_id=user.id
@@ -99,10 +105,8 @@ def create_sale():
                 db.session.add(new_sale)
         db.session.commit()
         return jsonify({'message': 'Sale created successfully'}), 201
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        # It's good practice to log the exception here
-        # logger.error(f"Error creating sale: {e}")
         return jsonify({"msg": "An internal error occurred"}), 500
 
 @employee_bp.route('/stock', methods=['GET'])
@@ -157,7 +161,10 @@ def dashboard():
     user = User.query.filter_by(username=current_user_username).first()
 
     total_sales = db.session.query(db.func.sum(Sale.total)).filter_by(employee_id=user.id).scalar()
-    low_stock_count = db.session.query(Inventory).join(Product).filter(Inventory.shop_id == user.shop_id, Inventory.current_stock <= Product.reorder_level).count()
+    low_stock_count = db.session.query(Inventory).join(Product).filter(
+        Inventory.shop_id == user.shop_id,
+        Inventory.current_stock <= Product.reorder_level
+    ).count()
 
     return jsonify({
         'total_sales': total_sales,
