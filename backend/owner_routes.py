@@ -192,19 +192,34 @@ def create_product():
     selling_price = data.get('selling_price')
     reorder_level = data.get('reorder_level')
 
+    # Ensure all required fields are present
     if not all([product_id, name, cost_price, selling_price, reorder_level]):
         return jsonify({"msg": "Missing required fields"}), 400
 
+    # Validate numeric fields: cost_price, selling_price, reorder_level
+    try:
+        cost_price_val = float(cost_price)
+        selling_price_val = float(selling_price)
+        reorder_level_val = int(reorder_level)
+    except (TypeError, ValueError):
+        return jsonify({"msg": "Invalid numeric value for cost_price, selling_price, or reorder_level"}), 400
+
+    # Prevent negative prices or reorder levels
+    if cost_price_val < 0 or selling_price_val < 0 or reorder_level_val < 0:
+        return jsonify({"msg": "cost_price, selling_price and reorder_level must be non-negative"}), 400
+
+    # Check if product with same product_id already exists
     if Product.query.filter_by(product_id=product_id).first():
         return jsonify({"msg": "Product with this ID already exists."}), 400
 
+    # Create new product with validated numeric fields
     new_product = Product(
         product_id=product_id,
         name=name,
         category=data.get('category'),
-        cost_price=cost_price,
-        selling_price=selling_price,
-        reorder_level=reorder_level
+        cost_price=cost_price_val,
+        selling_price=selling_price_val,
+        reorder_level=reorder_level_val
     )
     db.session.add(new_product)
     db.session.commit()
@@ -219,13 +234,42 @@ def update_product(id):
     if not product:
         return jsonify({'message': 'Product not found'}), 404
 
-    product.product_id = data.get('product_id', product.product_id)
-    product.name = data.get('name', product.name)
-    product.category = data.get('category', product.category)
-    product.cost_price = data.get('cost_price', product.cost_price)
-    product.selling_price = data.get('selling_price', product.selling_price)
-    product.reorder_level = data.get('reorder_level', product.reorder_level)
-
+    # Update product_id if provided
+    if 'product_id' in data:
+        product.product_id = data['product_id']
+    # Update name if provided
+    if 'name' in data:
+        product.name = data['name']
+    # Update category if provided
+    if 'category' in data:
+        product.category = data['category']
+    # Update cost_price if provided and valid
+    if 'cost_price' in data:
+        try:
+            cost_price_val = float(data['cost_price'])
+        except (TypeError, ValueError):
+            return jsonify({'msg': 'Invalid cost_price value'}), 400
+        if cost_price_val < 0:
+            return jsonify({'msg': 'cost_price must be non-negative'}), 400
+        product.cost_price = cost_price_val
+    # Update selling_price if provided and valid
+    if 'selling_price' in data:
+        try:
+            selling_price_val = float(data['selling_price'])
+        except (TypeError, ValueError):
+            return jsonify({'msg': 'Invalid selling_price value'}), 400
+        if selling_price_val < 0:
+            return jsonify({'msg': 'selling_price must be non-negative'}), 400
+        product.selling_price = selling_price_val
+    # Update reorder_level if provided and valid
+    if 'reorder_level' in data:
+        try:
+            reorder_level_val = int(data['reorder_level'])
+        except (TypeError, ValueError):
+            return jsonify({'msg': 'Invalid reorder_level value'}), 400
+        if reorder_level_val < 0:
+            return jsonify({'msg': 'reorder_level must be non-negative'}), 400
+        product.reorder_level = reorder_level_val
     db.session.commit()
     return jsonify({'message': 'Product updated successfully'})
 
