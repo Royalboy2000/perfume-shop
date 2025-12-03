@@ -2,6 +2,7 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 import os
+import logging
 from dotenv import load_dotenv
 from flask_cors import CORS
 from db import db
@@ -13,6 +14,14 @@ from api_routes import api_bp
 load_dotenv()
 
 app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+app.logger.addHandler(handler)
+
 # Use an absolute path for the database to avoid ambiguity
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'app.db')
 os.makedirs(os.path.dirname(db_path), exist_ok=True)
