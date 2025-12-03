@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -39,6 +40,37 @@ const employeeNav = [
 export function AppShell({ role, children }: AppShellProps) {
   const pathname = usePathname();
   const navItems = role === "owner" ? ownerNav : employeeNav;
+
+  // Extract user name from stored JWT token in localStorage.
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Attempt to decode the JWT token stored in localStorage. Tokens are usually in format header.payload.signature
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      try {
+        const parts = token.split(".");
+        if (parts.length > 1) {
+          const payloadPart = parts[1];
+          // Base64 decode with URL-safe replacements
+          const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const decoded = atob(base64);
+          // Decode URI components to handle UTF-8
+          const jsonPayload = decodeURIComponent(
+            decoded
+              .split("")
+              .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+              .join("")
+          );
+          const payload = JSON.parse(jsonPayload);
+          // The payload should include the user's name or username
+          setUserName(payload.name || payload.username || payload.user || null);
+        }
+      } catch (err) {
+        console.error("Failed to decode token", err);
+      }
+    }
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col text-slate-50 md:flex-row">
@@ -98,11 +130,16 @@ export function AppShell({ role, children }: AppShellProps) {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-xs text-slate-400 sm:block">
-              <div className="font-medium text-slate-100">Omar</div>
+              <div className="font-medium text-slate-100">{userName ?? ""}</div>
               <div>{role === "owner" ? "Owner" : "Employee"}</div>
             </div>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-sky-500 text-xs font-semibold shadow-lg shadow-brand-900/60">
-              {role === "owner" ? "O" : "E"}
+              {/* Use the first letter of the userName or fall back to role letter */}
+              {userName && userName.length > 0
+                ? userName.charAt(0).toUpperCase()
+                : role === "owner"
+                ? "O"
+                : "E"}
             </div>
           </div>
         </header>
@@ -126,9 +163,7 @@ export function AppShell({ role, children }: AppShellProps) {
                 <div
                   className={`flex h-9 w-9 items-center justify-center rounded-2xl border text-slate-200 transition
                     ${
-                      isActive
-                        ? "border-brand-500 bg-brand-500/20"
-                        : "border-transparent bg-slate-900/90"
+                      isActive ? "border-brand-500 bg-brand-500/20" : "border-transparent bg-slate-900/90"
                     }`}
                 >
                   <Icon className="h-4 w-4" />
